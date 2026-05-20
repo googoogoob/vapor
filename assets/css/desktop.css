@@ -1,9 +1,31 @@
+/* Martian Mono font */
+@font-face {
+  font-family: 'MartianMono';
+  src: url('../fonts/MartianMono-VariableFont_wdth,wght.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 body {
   margin: 0;
   height: 100vh;
-  background-color: #1c1c1c; /*Set background color*/
-  background-image: url('../images/background.png');/* Set background image to background yo, shrink it a bit so it don look ugy*/
+  background-color: #1c1c1c; 
+  background-image: url('../images/background.png');
   background-size: 50%;
-  background-position: center;
+  background-position: 49% center;
   background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+.clockwidget {
+  display: flex;
+  justify-content: center; 
+  align-items: center;     
+  height: 100vh;
+}
+
+.clock{
+  margin-top: 250px;
+  font-family: 'MartianMono', serif;  
+  color: white;
 }
