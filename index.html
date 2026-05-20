@@ -3,6 +3,9 @@
 
 <head>
     <script src="./assets/js/clockwidget.js"></script>
+    <script src="./assets/js/windowsystem/window.js"></script>
+    <script src="./assets/js/windowsystem/window-manager.js"></script>
+    <link rel="stylesheet" href="./assets/css/window.css">
     <link rel="stylesheet" href="./assets/css/desktop.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +18,13 @@
             <h1 id="time">loading...</h1>
         </div>
     </div>
+    <div class="desktop"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            windowManager.init('.desktop');
+            windowManager.openWindow('games/test.html', 'Test Game', 800, 600);
+        });
+    </script>
 </body>
 
 </html>

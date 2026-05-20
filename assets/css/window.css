@@ -1,0 +1,57 @@
+/* Window styling */
+.window {
+  position: absolute;
+  background: #050a14;             /* Very dark navy/black */
+  border: 2px solid #1a5fb4;       /* Solid deep blue border */
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); 
+  font-family: 'MartianMono', serif;
+}
+
+/* Titlebar */
+.titlebar {
+  background: #1a5fb4;             /* Solid deep blue (no gradient) */
+  color: #e1e1e1;                  /* Off-white for softer contrast */
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.titlebar .title {
+  font-weight: bold;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+/* Titlebar buttons */
+.titlebar .buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.titlebar button {
+  background: none;
+  border: none;
+  color: #e1e1e1;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  font-family: 'MartianMono', serif;
+  transition: background 0.2s ease;
+}
+
+.titlebar button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+/* Window content area */
+.window-content {
+  flex: 1;
+  overflow: hidden;
+  background: #050a14;
+}
