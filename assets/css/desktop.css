@@ -1,0 +1,9 @@
+body {
+  margin: 0;
+  height: 100vh;
+  background-color: #1c1c1c; /*Set background color*/
+  background-image: url('../images/background.png');/* Set background image to background yo, shrink it a bit so it don look ugy*/
+  background-size: 50%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
