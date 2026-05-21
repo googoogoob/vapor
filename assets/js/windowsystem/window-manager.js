@@ -159,7 +159,7 @@ class WindowManager {
 
     const label = document.createElement('span');
     label.className = 'task-label';
-    label.textContent = windowObj.title;
+    //label.textContent = windowObj.title;
     btn.appendChild(label);
 
     // Click toggles minimize/restore or focuses

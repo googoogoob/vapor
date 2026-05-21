@@ -6,10 +6,17 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'JetBrainsMono';
+  src: url('../fonts/JetBrainsMono-VariableFont_wght.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 body {
   margin: 0;
   height: 100vh;
-  background-color: #1c1c1c; 
+  background-color: #1c1c1c;
   background-image: url('../images/background.png');
   background-size: 50%;
   background-position: 49% center;
@@ -19,13 +26,13 @@ body {
 
 .clockwidget {
   display: flex;
-  justify-content: center; 
-  align-items: center;     
+  justify-content: center;
+  align-items: center;
   height: 100vh;
 }
 
-.clock{
+.clock {
   margin-top: 250px;
-  font-family: 'MartianMono', serif;  
+  font-family: 'MartianMono', serif;
   color: white;
 }
