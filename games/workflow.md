@@ -1,0 +1,1 @@
+# put each app in folder and put icon there too

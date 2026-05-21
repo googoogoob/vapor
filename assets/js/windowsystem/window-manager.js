@@ -17,12 +17,18 @@ class WindowManager {
       console.error(`Desktop element not found: ${desktopSelector}`);
       return false;
     }
+    // Create taskbar container at bottom of page
+    this.taskbarElement = document.createElement('div');
+    this.taskbarElement.className = 'taskbar';
+    document.body.appendChild(this.taskbarElement);
     console.log('WindowManager initialized');
     return true;
   }
 
   // Open a new game window
   openWindow(gameId, title, width, height) {
+    // optional icon parameter in the 5th arg
+    const icon = arguments.length >= 5 ? arguments[4] : null;
     // Check if game is already open
     const existingWindow = this.getGameWindow(gameId);
     if (existingWindow) {
@@ -40,10 +46,15 @@ class WindowManager {
       x: this.cascadeX,
       y: this.cascadeY,
       zIndex: this.nextZIndex
+      ,
+      icon: icon
     });
 
     // Add to windows array
     this.windows.push(windowObj);
+
+    // let manager clean up when window requests close
+    windowObj.onClose = () => this.closeWindow(windowObj.id);
 
     // Add to DOM
     this.desktopElement.appendChild(windowObj.getElement());
@@ -62,6 +73,9 @@ class WindowManager {
       this.focusWindow(windowObj.id);
     });
 
+    // Create taskbar item for this window
+    this.createTaskbarItem(windowObj);
+
     console.log(`Window opened: ${title} (${windowObj.id})`);
     return windowObj;
   }
@@ -71,7 +85,12 @@ class WindowManager {
     const index = this.windows.findIndex(w => w.id === windowId);
     if (index !== -1) {
       const window = this.windows[index];
-      window.destroy(); // Remove from DOM
+      // If not already destroyed by the window itself, destroy it
+      if (!window._destroyed) {
+        try { window.destroy(); } catch (e) { /* ignore */ }
+      }
+      // Remove taskbar item if present
+      if (window.taskbarItem && window.taskbarItem.remove) window.taskbarItem.remove();
       this.windows.splice(index, 1); // Remove from array
       console.log(`Window closed: ${window.title}`);
     }
@@ -87,11 +106,20 @@ class WindowManager {
       window.restore();
     }
 
-    // Set to highest z-index
-    window.setZIndex(this.nextZIndex);
-    this.nextZIndex++;
+    // Set to highest z-index but keep below taskbar z-index so taskbar remains visible
+    let taskbarZ = 10000;
+    if (this.taskbarElement) {
+      const z = getComputedStyle(this.taskbarElement).zIndex;
+      taskbarZ = parseInt(z, 10) || taskbarZ;
+    }
+    const maxZForWindows = taskbarZ - 1;
+    const zToUse = Math.min(this.nextZIndex, maxZForWindows);
+    window.setZIndex(zToUse);
+    if (this.nextZIndex < maxZForWindows) this.nextZIndex++;
 
     console.log(`Window focused: ${window.title}`);
+    // update taskbar active state
+    if (this.taskbarElement) this.updateTaskbarState(windowId, { focused: true, minimized: false });
   }
 
   // Minimize a window
@@ -100,6 +128,7 @@ class WindowManager {
     if (window) {
       window.minimize();
       console.log(`Window minimized: ${window.title}`);
+      if (this.taskbarElement) this.updateTaskbarState(windowId, { minimized: true, focused: false });
     }
   }
 
@@ -111,6 +140,53 @@ class WindowManager {
       this.focusWindow(windowId); // Bring to front when restoring
       console.log(`Window restored: ${window.title}`);
     }
+  }
+
+  // Create a taskbar button for a window
+  createTaskbarItem(windowObj) {
+    if (!this.taskbarElement) return;
+    const btn = document.createElement('button');
+    btn.className = 'task-item';
+    btn.dataset.windowId = windowObj.id;
+
+    if (windowObj.icon) {
+      const img = document.createElement('img');
+      img.src = windowObj.icon;
+      img.alt = windowObj.title;
+      img.className = 'task-icon';
+      btn.appendChild(img);
+    }
+
+    const label = document.createElement('span');
+    label.className = 'task-label';
+    label.textContent = windowObj.title;
+    btn.appendChild(label);
+
+    // Click toggles minimize/restore or focuses
+    btn.addEventListener('click', () => {
+      if (windowObj.isMinimized) {
+        this.restoreWindow(windowObj.id);
+      } else {
+        // If already focused, minimize; otherwise focus
+        const isFront = windowObj.zIndex === this.nextZIndex - 1;
+        if (isFront) this.minimizeWindow(windowObj.id);
+        else this.focusWindow(windowObj.id);
+      }
+    });
+
+    this.taskbarElement.appendChild(btn);
+    windowObj.taskbarItem = btn;
+    // mark initial active state
+    this.updateTaskbarState(windowObj.id, { minimized: windowObj.isMinimized, focused: false });
+  }
+
+  // Update visual state of taskbar item
+  updateTaskbarState(windowId, { minimized = false, focused = false } = {}) {
+    const win = this.windows.find(w => w.id === windowId);
+    if (!win || !win.taskbarItem) return;
+    const btn = win.taskbarItem;
+    if (minimized) btn.classList.add('minimized'); else btn.classList.remove('minimized');
+    if (focused) btn.classList.add('active'); else btn.classList.remove('active');
   }
 
   // Check if a game is already open

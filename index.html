@@ -22,7 +22,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             windowManager.init('.desktop');
-            windowManager.openWindow('games/test.html', 'Test Game', 800, 600);
+            // Open Test Game with a placeholder icon (assets/images/test-icon.svg)
+            windowManager.openWindow('games//test/test.html', 'Test Game', 800, 600, './games/test/test.png');
+            windowManager.openWindow('games//test2/test.html', 'Test Game2', 800, 600, './games/test2/test.png');
         });
     </script>
 </body>
