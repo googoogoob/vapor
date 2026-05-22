@@ -5,21 +5,29 @@
   font-weight: normal;
   font-style: normal;
 }
+
 /* Window styling */
 .window {
   position: absolute;
-  background: #050a14;             /* Very dark navy/black */
-  border: 2px solid #1a5fb4;       /* Solid deep blue border */
+  background: #050a14;
+  border: 2px solid #1a5fb4;
   display: flex;
   flex-direction: column;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); 
   font-family: 'JetBrainsMono', serif;
+  min-width: 200px;
+  min-height: 120px;
+}
+
+.window.maximized {
+  border-radius: 0;
+  box-shadow: none;
 }
 
 /* Titlebar */
 .titlebar {
-  background: #1a5fb4;             /* Solid deep blue (no gradient) */
-  color: #e1e1e1;                  /* Off-white for softer contrast */
+  background: #1a5fb4;
+  color: #e1e1e1;
   padding: 8px 12px;
   display: flex;
   justify-content: space-between;
@@ -63,6 +71,29 @@
   background: #050a14;
 }
 
+/* ── Resize handles ── */
+.resize-handle {
+  position: absolute;
+  z-index: 10;
+}
+
+/* Edges */
+.resize-n  { top: 0;    left: 6px;  right: 6px;  height: 5px; cursor: n-resize; }
+.resize-s  { bottom: 0; left: 6px;  right: 6px;  height: 5px; cursor: s-resize; }
+.resize-w  { left: 0;   top: 6px;   bottom: 6px; width: 5px;  cursor: w-resize; }
+.resize-e  { right: 0;  top: 6px;   bottom: 6px; width: 5px;  cursor: e-resize; }
+
+/* Corners */
+.resize-nw { top: 0;    left: 0;    width: 10px; height: 10px; cursor: nw-resize; }
+.resize-ne { top: 0;    right: 0;   width: 10px; height: 10px; cursor: ne-resize; }
+.resize-sw { bottom: 0; left: 0;    width: 10px; height: 10px; cursor: sw-resize; }
+.resize-se { bottom: 0; right: 0;   width: 10px; height: 10px; cursor: se-resize; }
+
+/* Hide resize handles on maximized windows */
+.window.maximized .resize-handle {
+  display: none;
+}
+
 /* Taskbar styling */
 .taskbar {
   position: fixed;
@@ -75,7 +106,7 @@
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  z-index: 10000; /* on top of windows */
+  z-index: 10000;
 }
 
 .task-item {

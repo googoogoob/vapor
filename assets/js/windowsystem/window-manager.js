@@ -65,8 +65,9 @@ class WindowManager {
     // Update cascade position for next window
     this.updateCascadePosition(width || 800, height || 600);
 
-    // Make window draggable
+    // Make window draggable and resizable
     this.makeDraggable(windowObj);
+    this.makeResizable(windowObj);
 
     // Add click listener to bring to focus
     windowObj.getElement().addEventListener('mousedown', () => {
@@ -218,6 +219,15 @@ class WindowManager {
     }
   }
 
+  // Disable pointer events on all iframes (prevents them stealing mouse during drag/resize)
+  _lockIframes() {
+    document.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'none');
+  }
+
+  _unlockIframes() {
+    document.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = '');
+  }
+
   // Make a window draggable
   makeDraggable(windowObj) {
     const element = windowObj.getElement();
@@ -229,34 +239,86 @@ class WindowManager {
     let offsetX = 0;
     let offsetY = 0;
 
-    // Start dragging
     titlebar.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.buttons')) return;
+      if (windowObj.isMaximized) return;
       isDragging = true;
       startX = e.clientX;
       startY = e.clientY;
       offsetX = windowObj.x;
       offsetY = windowObj.y;
-
-      // Bring to front while dragging
+      this._lockIframes();
       this.focusWindow(windowObj.id);
     });
 
-    // Drag
     document.addEventListener('mousemove', (e) => {
       if (!isDragging) return;
-
-      const deltaX = e.clientX - startX;
-      const deltaY = e.clientY - startY;
-
-      const newX = offsetX + deltaX;
-      const newY = offsetY + deltaY;
-
+      const newX = offsetX + (e.clientX - startX);
+      const newY = offsetY + (e.clientY - startY);
       windowObj.move(newX, newY);
     });
 
-    // Stop dragging
     document.addEventListener('mouseup', () => {
-      isDragging = false;
+      if (isDragging) {
+        isDragging = false;
+        this._unlockIframes();
+      }
+    });
+  }
+
+  // Make a window resizable via edge/corner handles
+  makeResizable(windowObj) {
+    const element = windowObj.getElement();
+    const handles = element.querySelectorAll('.resize-handle');
+
+    handles.forEach(handle => {
+      handle.addEventListener('mousedown', (e) => {
+        if (windowObj.isMaximized) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const dir = handle.dataset.dir;
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const startW = windowObj.width;
+        const startH = windowObj.height;
+        const startLeft = windowObj.x;
+        const startTop = windowObj.y;
+        const minW = 200, minH = 120;
+
+        this._lockIframes();
+        this.focusWindow(windowObj.id);
+
+        const onMove = (e) => {
+          const dx = e.clientX - startX;
+          const dy = e.clientY - startY;
+
+          let newW = startW, newH = startH, newX = startLeft, newY = startTop;
+
+          if (dir.includes('e')) newW = Math.max(minW, startW + dx);
+          if (dir.includes('s')) newH = Math.max(minH, startH + dy);
+          if (dir.includes('w')) {
+            newW = Math.max(minW, startW - dx);
+            newX = startLeft + (startW - newW);
+          }
+          if (dir.includes('n')) {
+            newH = Math.max(minH, startH - dy);
+            newY = startTop + (startH - newH);
+          }
+
+          windowObj.move(newX, newY);
+          windowObj.resize(newW, newH);
+        };
+
+        const onUp = () => {
+          this._unlockIframes();
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+        };
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      });
     });
   }
 
