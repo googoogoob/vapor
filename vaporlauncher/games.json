@@ -6,9 +6,9 @@
       "desc":"TESTING GAME 01"
     },
     {
-      "name": "TEST 1",
-      "filepath": "../games/test/",
-      "desc":"TESTING GAME 01"
+      "name": "TEST 2",
+      "filepath": "../games/test2/",
+      "desc":"TESTING GAME 02"
     }
   ]
 }

@@ -1,15 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="./style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VAPORLauncher</title>
 </head>
 <body>
-    <h1>Welcome to VAPOR</h1>
-    <p>TEST</p>
-    <div id="gamesList"></div>
-    
+    <header class="title-bar">
+        <div class="title-bar__title">VAPORLauncher</div>
+        <div class="title-bar__subtitle">its like budget steam yo!</div>
+    </header>
+    <div class="app-container">
+        <aside class="sidebar">
+            <h2>Games</h2>
+            <div id="game-list" class="game-list"></div>
+        </aside>
+        <main class="main-content">
+            <h1>Welcome to VAPOR</h1>
+            <p>Launch and manage your games from the sidebar.</p>
+        </main>
+    </div>
+
     <script src="./scripts/fetch.js"></script>
 </body>
 </html>
