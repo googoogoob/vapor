@@ -1,0 +1,14 @@
+{
+  "games": [
+    {
+      "name": "TEST 1",
+      "filepath": "../games/test/",
+      "desc":"TESTING GAME 01"
+    },
+    {
+      "name": "TEST 1",
+      "filepath": "../games/test/",
+      "desc":"TESTING GAME 01"
+    }
+  ]
+}
