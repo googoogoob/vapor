@@ -151,12 +151,60 @@ class Window {
 
   minimize() {
     this.isMinimized = true;
-    this.element.style.display = 'none';
+    const el = this.element;
+    // Use visibility instead of display to avoid layout/repaint bugs
+    el.style.visibility = 'hidden';
+    el.style.pointerEvents = 'none';
+    el.classList.add('minimized');
   }
 
   restore() {
     this.isMinimized = false;
-    this.element.style.display = 'block';
+    const el = this.element;
+    // Restore visibility and pointer events
+    el.style.visibility = '';
+    el.style.pointerEvents = '';
+    el.classList.remove('minimized');
+
+    // Force a repaint of iframe/content to avoid visual glitches
+    // that can occur when the parent was hidden then shown.
+    try {
+      const iframe = el.querySelector('iframe');
+      if (iframe) {
+        // Use a compositing hint and a brief reflow to force redraw
+        iframe.style.willChange = 'transform, opacity';
+        iframe.style.transform = 'translateZ(0)';
+        // force reflow
+        void iframe.offsetHeight;
+        // remove transient hints
+        iframe.style.transform = '';
+        iframe.style.willChange = '';
+
+        // notify the iframe content to resize/redraw and focus it
+        if (iframe.contentWindow) {
+          try { iframe.contentWindow.dispatchEvent(new Event('resize')); } catch (e) {}
+          try { iframe.contentWindow.focus && iframe.contentWindow.focus(); } catch (e) {}
+        }
+      }
+    } catch (e) {}
+
+    // Force a repaint of iframe/content to avoid visual glitches
+    // that can occur when the parent is hidden (display:none) then shown.
+    try {
+      const iframe = el.querySelector('iframe');
+      if (iframe) {
+        // briefly hide the iframe to force the browser to repaint it
+        iframe.style.visibility = 'hidden';
+        // force reflow
+        void iframe.offsetHeight;
+        iframe.style.visibility = '';
+        // notify the iframe content to resize/redraw and focus it
+        if (iframe.contentWindow) {
+          try { iframe.contentWindow.dispatchEvent(new Event('resize')); } catch (e) {}
+          try { iframe.contentWindow.focus && iframe.contentWindow.focus(); } catch (e) {}
+        }
+      }
+    } catch (e) {}
   }
 
   toggleMaximize() {
