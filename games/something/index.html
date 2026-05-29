@@ -1,61 +1,145 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
+
+<head>
   <base href="https://cdn.jsdelivr.net/gh/googoogoob/SomethingWebPort/">
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity WebGL Player | Something</title>
-  </head>
-  <body style="text-align: center; padding: 0; border: 0; margin: 0;">
-    <canvas id="unity-canvas" width=960 height=600 tabindex="-1" style="width: 100%; height: 100%; background: #CCCCCC"></canvas>
-    <script src="Build/Something.loader.js"></script>
-    <script>
-  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-    var meta = document.createElement('meta');
-    meta.name = 'viewport';
-    meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-    document.getElementsByTagName('head')[0].appendChild(meta);
-    var canvas = document.querySelector("#unity-canvas");
-    canvas.style.width = "100%";
-    canvas.style.height = "100%";
-    canvas.style.position = "fixed";
-    document.body.style.textAlign = "left";
-  }
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Unity WebGL Player | Something</title>
+  <style>
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0d0d0d;
+      z-index: 9999;
+      font-family: 'Verdana', monospace;
+      color: #e0e0e0;
+      gap: 18px;
+      transition: opacity 0.6s ease;
+    }
 
-  function mergeFiles(fileParts) {
-    return new Promise((resolve, reject) => {
-      let buffers = [];
-      function fetchPart(index) {
-        if (index >= fileParts.length) {
-          resolve(URL.createObjectURL(new Blob(buffers)));
-          return;
-        }
-        fetch(fileParts[index])
-          .then(r => r.arrayBuffer())
-          .then(data => { buffers.push(data); fetchPart(index + 1); })
-          .catch(reject);
+    #loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #loading-bar-track {
+      width: 280px;
+      height: 3px;
+      background: #222;
+    }
+
+    #loading-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: #fff;
+      transition: width 0.3s;
+    }
+  </style>
+</head>
+
+<body style="text-align: center; padding: 0; border: 0; margin: 0;">
+  <div id="loading-overlay">
+    <div id="loading-title">Something</div>
+    <div id="loading-bar-track">
+      <div id="loading-bar-fill"></div>
+    </div>
+    <div id="loading-mb">Initializing…</div>
+  </div>
+  <canvas id="unity-canvas" width=960 height=600 tabindex="-1"
+    style="width: 100%; height: 100%; background: #CCCCCC"></canvas>
+  <script>
+    let totalDownloaded = 0;
+    const _nativeFetch = window.fetch.bind(window);
+
+    window.fetch = async function (input, init) {
+      const response = await _nativeFetch(input, init);
+      const url = typeof input === 'string' ? input : input.url;
+
+      if (/\.(data|wasm|js)(\.gz|\.br)?(\?|$)/i.test(url)) {
+        const cloned = response.clone();
+        const reader = cloned.body.getReader();
+        (async () => {
+          try {
+            while (true) {
+              const {done, value} = await reader.read();
+              if (done) break;
+              totalDownloaded += value.byteLength;
+              updateMbLabel();
+            }
+          } catch (_) { }
+        })();
       }
-      fetchPart(0);
-    });
-  }
+      return response;
+    };
 
-  function getParts(file, start, end) {
-    let parts = [];
-    for (let i = start; i <= end; i++) parts.push(file + ".part" + i);
-    return parts;
-  }
+    function updateMbLabel() {
+      const mb = (totalDownloaded / (1024 * 1024)).toFixed(1);
+      document.getElementById('loading-mb').textContent = mb + ' MB downloaded';
+    }
+  </script>
+  <script src="Build/Something.loader.js"></script>
+  <script>
+    const overlay = document.getElementById('loading-overlay');
+    const overlayBar = document.getElementById('loading-bar-fill');
 
-  mergeFiles(getParts("Build/Something.wasm", 1, 2)).then((wasmUrl) => {
-    createUnityInstance(document.querySelector("#unity-canvas"), {
-      dataUrl: "Build/Something.data",
-      frameworkUrl: "Build/Something.framework.js",
-      codeUrl: wasmUrl,
-      streamingAssetsUrl: "StreamingAssets",
-      companyName: "Pixelatto_SirCheetoDust",
-      productName: "Something",
-      productVersion: "1.0",
-    }).catch((message) => { alert(message); });
-  }).catch((message) => { alert(message); });
-</script>
-  </body>
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      var meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+      document.getElementsByTagName('head')[0].appendChild(meta);
+      var canvas = document.querySelector("#unity-canvas");
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
+      canvas.style.position = "fixed";
+      document.body.style.textAlign = "left";
+    }
+
+    function mergeFiles(fileParts) {
+      return new Promise((resolve, reject) => {
+        let buffers = [];
+        function fetchPart(index) {
+          if (index >= fileParts.length) {
+            resolve(URL.createObjectURL(new Blob(buffers)));
+            return;
+          }
+          fetch(fileParts[index])
+            .then(r => r.arrayBuffer())
+            .then(data => {buffers.push(data); fetchPart(index + 1);})
+            .catch(reject);
+        }
+        fetchPart(0);
+      });
+    }
+
+    function getParts(file, start, end) {
+      let parts = [];
+      for (let i = start; i <= end; i++) parts.push(file + ".part" + i);
+      return parts;
+    }
+
+    mergeFiles(getParts("Build/Something.wasm", 1, 2)).then((wasmUrl) => {
+      createUnityInstance(document.querySelector("#unity-canvas"), {
+        dataUrl: "Build/Something.data",
+        frameworkUrl: "Build/Something.framework.js",
+        codeUrl: wasmUrl,
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Pixelatto_SirCheetoDust",
+        productName: "Something",
+        productVersion: "1.0",
+      }, (progress) => {
+        overlayBar.style.width = (progress * 100) + '%';
+      }).then(() => {
+        overlay.classList.add('hidden');
+        setTimeout(() => overlay.remove(), 700);
+      }).catch((message) => {alert(message);});
+    }).catch((message) => {alert(message);});
+  </script>
+  <div id="unity-loading-bar" style="display:none">…</div>
+</body>
+
 </html>

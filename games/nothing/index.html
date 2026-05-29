@@ -9,12 +9,81 @@
   <link rel="shortcut icon" href="TemplateData/favicon.ico">
   <link rel="stylesheet" href="TemplateData/style.css">
   <link rel="manifest" href="manifest.webmanifest">
+  <style>
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0d0d0d;
+      z-index: 9999;
+      font-family: 'Verdana', monospace;
+      color: #e0e0e0;
+      gap: 18px;
+      transition: opacity 0.6s ease;
+    }
+
+    #loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #loading-title {
+      font-size: 2rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    #loading-mb {
+      font-size: 1rem;
+      color: #aaaaaa;
+      letter-spacing: 0.1em;
+      min-height: 1.4em;
+    }
+
+    #loading-bar-track {
+      width: 280px;
+      height: 3px;
+      background: #2a2a2a;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    #loading-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: #ffffff;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    #loading-hint {
+      font-size: 0.7rem;
+      color: #555;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+  </style>
 </head>
 
 <body>
+  <!-- Custom loading overlay -->
+  <div id="loading-overlay">
+    <div id="loading-title">Nothing</div>
+    <div id="loading-bar-track">
+      <div id="loading-bar-fill"></div>
+    </div>
+    <div id="loading-mb">Initializing…</div>
+    <div id="loading-hint">Loading game assets.</div>
+  </div>
+
   <div id="unity-container">
     <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
-    <div id="unity-loading-bar">
+    <div id="unity-loading-bar" style="display:none">
       <div id="unity-logo"></div>
       <div id="unity-progress-bar-empty">
         <div id="unity-progress-bar-full"></div>
@@ -22,7 +91,43 @@
     </div>
     <div id="unity-warning"> </div>
   </div>
+
   <script>
+    // ── Byte-tracking fetch interceptor ──────────────────────────────────────
+    let totalDownloaded = 0; // bytes received across all tracked fetches
+
+    const _nativeFetch = window.fetch.bind(window);
+    window.fetch = async function (input, init) {
+      const response = await _nativeFetch(input, init);
+      const url = (typeof input === 'string') ? input : input.url;
+
+      // Only track Unity build assets (data / wasm / framework)
+      const isAsset = /\.(data|wasm|js)(\.gz|\.br)?(\?|$)/i.test(url);
+      if (!isAsset) return response;
+
+      // Clone so we can tee the body stream
+      const cloned = response.clone();
+      const reader = cloned.body.getReader();
+      (async () => {
+        try {
+          while (true) {
+            const {done, value} = await reader.read();
+            if (done) break;
+            totalDownloaded += value.byteLength;
+            updateMbLabel();
+          }
+        } catch (_) { /* stream cancelled — ignore */}
+      })();
+
+      return response;
+    };
+
+    function updateMbLabel() {
+      const mb = (totalDownloaded / (1024 * 1024)).toFixed(1);
+      document.getElementById('loading-mb').textContent = mb + ' MB downloaded';
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     window.addEventListener("load", function () {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("ServiceWorker.js");
@@ -34,13 +139,9 @@
     var loadingBar = document.querySelector("#unity-loading-bar");
     var progressBarFull = document.querySelector("#unity-progress-bar-full");
     var warningBanner = document.querySelector("#unity-warning");
+    var overlay = document.getElementById("loading-overlay");
+    var overlayBar = document.getElementById("loading-bar-fill");
 
-    // Shows a temporary message banner/ribbon for a few seconds, or
-    // a permanent error message on top of the canvas if type=='error'.
-    // If type=='warning', a yellow highlight color is used.
-    // Modify or remove this function to customize the visually presented
-    // way that non-critical warnings and error messages are presented to the
-    // user.
     function unityShowBanner(msg, type) {
       function updateBannerVisibility() {
         warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
@@ -72,29 +173,24 @@
       showBanner: unityShowBanner,
     };
 
-    // By default Unity keeps WebGL canvas render target size matched with
-    // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-    // Set this to false if you want to decouple this synchronization from
-    // happening inside the engine, and you would instead like to size up
-    // the canvas DOM size and WebGL render target sizes yourself.
-    // config.matchWebGLToCanvasSize = false;
-
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      // Mobile device style: fill the whole browser client area with the game canvas:
       var meta = document.createElement('meta');
       meta.name = 'viewport';
       meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
       document.getElementsByTagName('head')[0].appendChild(meta);
     }
 
-    loadingBar.style.display = "block";
-
     var script = document.createElement("script");
     script.src = loaderUrl;
     script.onload = () => {
       createUnityInstance(canvas, config, (progress) => {
-        progressBarFull.style.width = 100 * progress + "%";
+        // Mirror progress into our overlay bar
+        overlayBar.style.width = (100 * progress) + "%";
+        progressBarFull.style.width = (100 * progress) + "%";
       }).then((unityInstance) => {
+        // Fade out and remove overlay once the game is running
+        overlay.classList.add("hidden");
+        setTimeout(() => overlay.remove(), 700);
         loadingBar.style.display = "none";
       }).catch((message) => {
         alert(message);
