@@ -1,15 +1,15 @@
 {
   "games": [
     {
-      "name": "TEST 1",
-      "filepath": "../games/test/",
-      "desc":"TESTING GAME 01",
+      "name": "Nothing",
+      "filepath": "../games/nothing/",
+      "desc":"The hardest game you're ever going to play. Or is it? Just do Nothing as the timer goes up. If you do Something, you lose.",
       "banner": "banner.png"
     },
     {
-      "name": "TEST 2",
-      "filepath": "../games/test2/",
-      "desc":"TESTING GAME 02",
+      "name": "Something",
+      "filepath": "../games/something/",
+      "desc":"The easiest game you're ever going to play. Or is it? Keep doing Something as the timer goes up. If you do Nothing, you lose. If you don't like doing something, go do nothing",
       "banner": "banner.png"
     }
   ]

@@ -67,7 +67,7 @@ function showGameDetails(game) {
   // Launch via the parent desktop's windowManager if running inside an iframe,
   // otherwise use the local windowManager or fallback to a new tab.
   launch.addEventListener('click', () => {
-    const gameUrl = new URL(`${folderPath}test.html`, window.location.href).href;
+    const gameUrl = new URL(`${folderPath}index.html`, window.location.href).href;
     const iconPath = new URL(`${folderPath}icon.png`, window.location.href).href;
 
     const isEmbedded = window.top && window.top !== window;
