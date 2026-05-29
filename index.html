@@ -20,6 +20,14 @@
     </div>
     <div class="desktop"></div>
     <script>
+        window.addEventListener('message', (event) => {
+            if (!event.data || event.data.type !== 'vapor-launcher-open-game-window') return;
+            const payload = event.data.payload || {};
+            if (!payload.url || !windowManager || typeof windowManager.openWindow !== 'function') return;
+            const gameUrl = new URL(payload.url, window.location.href).href;
+            windowManager.openWindow(gameUrl, payload.title || 'Game', payload.width || 900, payload.height || 600, payload.icon || '');
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             windowManager.init('.desktop');
             // Open Test Game with a placeholder icon (assets/images/test-icon.svg)
