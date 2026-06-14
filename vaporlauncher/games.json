@@ -1,6 +1,12 @@
 {
   "games": [
     {
+      "name": "Karlson",
+      "filepath": "../games/karlson/",
+      "desc":"Karlson is a milk-infused fellow, on a mission to take down anyone in his way to secure the milk.",
+      "banner": "banner.png"
+    },
+    {
       "name": "Nothing",
       "filepath": "../games/nothing/",
       "desc":"The hardest game you're ever going to play. Or is it? Just do Nothing as the timer goes up. If you do Something, you lose.",
