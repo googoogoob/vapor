@@ -1,3 +1,75 @@
+const activeSessions = new Map();
+
+function startTracking(game, windowObj) {
+  const gameName = game.name;
+  if (activeSessions.has(gameName)) return;
+
+  const session = {
+    startTime: Date.now(),
+    gameName: gameName,
+    windowObj: windowObj,
+    intervalId: null
+  };
+
+  activeSessions.set(gameName, session);
+
+  if (windowObj) {
+    const originalOnClose = windowObj.onClose;
+    windowObj.onClose = () => {
+      stopTracking(gameName);
+      if (typeof originalOnClose === 'function') originalOnClose();
+    };
+  }
+
+  session.intervalId = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - session.startTime) / 1000);
+    if (elapsed > 0) {
+      PlaytimeStorage.addPlaytime(gameName, elapsed);
+      session.startTime = Date.now();
+      updatePlaytimeDisplay(gameName);
+    }
+  }, 30000);
+}
+
+function stopTracking(gameName) {
+  const session = activeSessions.get(gameName);
+  if (!session) return;
+
+  const elapsed = Math.floor((Date.now() - session.startTime) / 1000);
+  if (elapsed > 0) {
+    PlaytimeStorage.addPlaytime(gameName, elapsed);
+    updatePlaytimeDisplay(gameName);
+  }
+
+  if (session.intervalId) clearInterval(session.intervalId);
+  activeSessions.delete(gameName);
+}
+
+function updatePlaytimeDisplay(gameName) {
+  const el = document.getElementById('playtime-display');
+  if (el && el.dataset.game === gameName) {
+    const total = PlaytimeStorage.getPlaytime(gameName);
+    el.textContent = playtimeLabel(total);
+  }
+}
+
+function playtimeLabel(seconds) {
+  return `Playtime: ${PlaytimeStorage.format(seconds)}`;
+}
+
+window.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'vapor-launcher-game-closed') {
+    const gameName = event.data.payload && event.data.payload.gameName;
+    if (gameName) stopTracking(gameName);
+  }
+});
+
+window.addEventListener('beforeunload', () => {
+  for (const gameName of activeSessions.keys()) {
+    stopTracking(gameName);
+  }
+});
+
 async function loadGames() {
   try {
     const response = await fetch('games.json');
@@ -64,8 +136,6 @@ function showGameDetails(game) {
   launch.className = 'launch-button';
   launch.textContent = 'Play';
 
-  // Launch via the parent desktop's windowManager if running inside an iframe,
-  // otherwise use the local windowManager or fallback to a new tab.
   launch.addEventListener('click', () => {
     const gameUrl = new URL(`${folderPath}index.html`, window.location.href).href;
     const iconPath = new URL(`${folderPath}icon.png`, window.location.href).href;
@@ -73,10 +143,12 @@ function showGameDetails(game) {
     const isEmbedded = window.top && window.top !== window;
     const targetWindow = isEmbedded ? window.top : window.parent && window.parent !== window ? window.parent : null;
 
+    let gameWindow = null;
+
     const openLocal = () => {
       const localManager = (typeof windowManager !== 'undefined') ? windowManager : window.windowManager;
       if (localManager && typeof localManager.openWindow === 'function') {
-        localManager.openWindow(gameUrl, game.name || 'Game', 900, 600, iconPath);
+        gameWindow = localManager.openWindow(gameUrl, game.name || 'Game', 900, 600, iconPath);
         return true;
       }
       return false;
@@ -93,7 +165,8 @@ function showGameDetails(game) {
               title: game.name || 'Game',
               width: 900,
               height: 600,
-              icon: iconPath
+              icon: iconPath,
+              gameName: game.name
             }
           },
           '*'
@@ -104,12 +177,24 @@ function showGameDetails(game) {
       }
     };
 
+    let launched = false;
     if (isEmbedded) {
-      if (!openViaMessage()) {
-        openLocal();
-      }
+      launched = openViaMessage();
+      if (!launched) launched = openLocal();
     } else {
-      openLocal() || window.open(gameUrl, '_blank');
+      launched = openLocal();
+      if (!launched) {
+        window.open(gameUrl, '_blank');
+        launched = true;
+      }
+    }
+
+    if (launched) {
+      if (gameWindow) {
+        startTracking(game, gameWindow);
+      } else if (isEmbedded) {
+        startTracking(game, null);
+      }
     }
   });
 
@@ -120,12 +205,18 @@ function showGameDetails(game) {
   desc.className = 'game-desc';
   desc.textContent = game.desc || '';
 
+  const playtimeEl = document.createElement('p');
+  playtimeEl.className = 'playtime-display';
+  playtimeEl.id = 'playtime-display';
+  playtimeEl.dataset.game = game.name;
+  playtimeEl.textContent = playtimeLabel(PlaytimeStorage.getPlaytime(game.name));
+
   details.appendChild(banner);
   details.appendChild(header);
   details.appendChild(desc);
+  details.appendChild(playtimeEl);
 }
 
-// Detect whether this launcher is embedded inside another desktop.
 const isEmbedded = (() => {
   try {
     return window.top && window.top !== window;

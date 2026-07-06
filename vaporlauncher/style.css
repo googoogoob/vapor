@@ -146,6 +146,12 @@ body {
     margin-bottom: 16px;
 }
 
+.playtime-display {
+    color: #8ab4f8;
+    font-size: 0.9rem;
+    margin: 4px 0 12px 0;
+}
+
 .launch-button {
     display: inline-block;
     padding: 10px 16px;

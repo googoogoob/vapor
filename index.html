@@ -25,7 +25,20 @@
             const payload = event.data.payload || {};
             if (!payload.url || !windowManager || typeof windowManager.openWindow !== 'function') return;
             const gameUrl = new URL(payload.url, window.location.href).href;
-            windowManager.openWindow(gameUrl, payload.title || 'Game', payload.width || 900, payload.height || 600, payload.icon || '');
+            const win = windowManager.openWindow(gameUrl, payload.title || 'Game', payload.width || 900, payload.height || 600, payload.icon || '');
+
+            if (win && payload.gameName) {
+                const origOnClose = win.onClose;
+                win.onClose = () => {
+                    try {
+                        event.source.postMessage({
+                            type: 'vapor-launcher-game-closed',
+                            payload: { gameName: payload.gameName }
+                        }, '*');
+                    } catch (e) {}
+                    if (typeof origOnClose === 'function') origOnClose();
+                };
+            }
         });
 
         document.addEventListener('DOMContentLoaded', () => {
