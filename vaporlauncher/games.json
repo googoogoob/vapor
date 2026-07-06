@@ -19,6 +19,12 @@
       "banner": "banner.png"
     },
     {
+      "name": "Super Mario 64 Freedom Edition",
+      "filepath": "../games/smfps/",
+      "desc":"Experience the nostalgia of Super Mario 64 for the Nintendo 64 but in HD in the Unity Engine as a first person shooter with guns. Shoot Goombas, rupture Bowsers organs, blow things up, jump, everything you could want from a Mario FPS",
+      "banner": "banner.png"
+    },
+    {
       "name": "Something",
       "filepath": "../games/something/",
       "desc":"The easiest game you're ever going to play. Or is it? Keep doing Something as the timer goes up. If you do Nothing, you lose. If you don't like doing something, go do nothing",
