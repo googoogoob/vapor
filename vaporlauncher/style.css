@@ -214,7 +214,7 @@ body {
     gap: 8px;
 }
 
-..titlebar button {
+.titlebar button {
     background: none;
     border: none;
     color: #e1e1e1;
