@@ -213,8 +213,8 @@ function showGameDetails(game) {
 
   details.appendChild(banner);
   details.appendChild(header);
-  details.appendChild(desc);
   details.appendChild(playtimeEl);
+  details.appendChild(desc);
 }
 
 const isEmbedded = (() => {
