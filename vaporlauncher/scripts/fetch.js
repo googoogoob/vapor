@@ -70,9 +70,11 @@ window.addEventListener('beforeunload', () => {
   }
 });
 
+// MODIFIED: Added cache-busting logic to fetch fresh data every time
 async function loadGames() {
   try {
-    const response = await fetch('games.json');
+    // Appending a unique timestamp parameter ensures the browser treats it as a brand new request
+    const response = await fetch(`games.json?t=${Date.now()}`, { cache: 'no-store' });
     const data = await response.json();
     const list = document.getElementById('game-list');
     if (!list) return;

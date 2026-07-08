@@ -29,6 +29,36 @@
       "filepath": "../games/something/",
       "desc":"The easiest game you're ever going to play. Or is it? Keep doing Something as the timer goes up. If you do Nothing, you lose. If you don't like doing something, go do nothing",
       "banner": "banner.png"
+    },
+    {
+      "name": "Sooper Fighterz",
+      "filepath": "../games/sooperfighterz/",
+      "desc":"Controls:\n Alt + Enter to toggle fullscreen \n Player 1 : WASD - Move, Q - Main Attack, E - Secondary Attack\nPlayer 2 : TFGH - Move, R - Main Attack, Y - Secondary Attack \n Player 3 : IJKL - Move, U - Main Attack, O - Secondary Attack \n Player 4 : ^<V> - Move, Comma (,) - Main Attack, Period (.) - Secondary Attack",
+      "banner": "banner.png"
+    },
+    {
+      "name": "Troops",
+      "filepath": "../games/troops/",
+      "desc":"Troops is a physics based battle simulator.  Choose how many troops you want to spawn, then watch them fight... that's it.",
+      "banner": "banner.png"
+    },
+    {
+      "name": "Airships 1",
+      "filepath": "../games/airship1/",
+      "desc":"A game about building airships",
+      "banner": "icon.png"
+    },
+    {
+      "name": "Airships 2",
+      "filepath": "../games/airship2/",
+      "desc":"A game about building airships, but better",
+      "banner": "icon.png"
+    },
+    {
+      "name": "Space Flight Simulator",
+      "filepath": "../games/sfs/",
+      "desc":"In Spaceflight Simulator, you will get to build your rockets, plan launches and flights, attempt landings, deploy payloads and explore new worlds.",
+      "banner": "icon.png"
     }
   ]
 }

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <base href="https://cdn.jsdelivr.net/gh/thecheetoman/landfallArchivePorts@main/airship2/">
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | Airships 2</title>
+    <script src="Build/UnityLoader.js"></script>
+    <script>
+      var gameInstance = UnityLoader.instantiate("gameContainer", "Build/airship.json");
+    </script>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #000;
+        overflow: hidden;
+      }
+
+      #unityContainer {
+        width: 100%;
+        min-height: 100%;
+        margin: 0;
+        border: none;
+        background: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="gameContainer"></div>
+  </body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <base href="https://cdn.jsdelivr.net/gh/thecheetoman/troopsWebPort@main/">
+
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Unity WebGL Player | Troops</title>
+  <link rel="shortcut icon" href="TemplateData/favicon.ico">
+  <link rel="stylesheet" href="TemplateData/style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <style>
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      font-family: Verdana, sans-serif;
+      z-index: 9999
+    }
+
+    #track {
+      width: 320px;
+      height: 4px;
+      background: #333
+    }
+
+    #fill {
+      height: 100%;
+      width: 0;
+      background: #fff
+    }
+
+    #mb {
+      margin-top: 12px
+    }
+
+    .hidden {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .6s
+    }
+  </style>
+</head>
+
+<body>
+  <div id="loading-overlay">
+    <h2>Troops</h2>
+    <div id="track">
+      <div id="fill"></div>
+    </div>
+    <div id="mb">Initializing…</div>
+  </div>
+  <div id="unity-container"><canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
+    <div id="unity-loading-bar" style="display:none">
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
+      </div>
+    </div>
+    <div id="unity-warning"></div>
+  </div>
+  <script>
+    window.addEventListener("load", () => { "serviceWorker" in navigator && navigator.serviceWorker.register("ServiceWorker.js"); });
+    let total = 0, nativeFetch = window.fetch.bind(window);
+    window.fetch = async (i, n) => { const r = await nativeFetch(i, n); const u = typeof i === "string" ? i : i.url; if (/\.(unityweb|data|wasm|js)(\?|$)/i.test(u)) { const c = r.clone(); const rd = c.body.getReader(); (async () => { try { for (; ;) { const { done, value } = await rd.read(); if (done) break; total += value.byteLength; document.getElementById("mb").textContent = (total / 1048576).toFixed(1) + " MB downloaded"; } } catch (e) { } })(); } return r; }
+    function banner(m, t) { const w = document.getElementById("unity-warning"), d = document.createElement("div"); d.innerHTML = m; if (t == "error") d.style = "background:red;padding:10px"; else d.style = "background:yellow;padding:10px"; w.appendChild(d); }
+    function getParts(f, s, e) { let a = []; for (let i = s; i <= e; i++)a.push(f + ".part" + i); return a; }
+    function mergeFiles(parts) { return new Promise((res, rej) => { let bufs = []; (function nxt(i) { if (i >= parts.length) { res(URL.createObjectURL(new Blob(bufs))); return; } fetch(parts[i]).then(r => r.arrayBuffer()).then(b => { bufs.push(b); nxt(i + 1) }).catch(rej) })(0); }); }
+    const build = "Build";
+    mergeFiles(getParts(build + "/troopsWebPort.data.unityweb", 1, 7)).then(dataUrl => {
+      const cfg = { dataUrl: dataUrl, frameworkUrl: build + "/troopsWebPort.framework.js.unityweb", codeUrl: build + "/troopsWebPort.wasm.unityweb", streamingAssetsUrl: "StreamingAssets", companyName: "Rye Games", productName: "Troops", productVersion: "0.1.0", showBanner: banner };
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) { let m = document.createElement("meta"); m.name = "viewport"; m.content = "width=device-width,height=device-height,initial-scale=1,user-scalable=no"; document.head.appendChild(m); }
+      let s = document.createElement("script"); s.src = build + "/troopsWebPort.loader.js"; s.onload = () => createUnityInstance(document.getElementById("unity-canvas"), cfg, p => { document.getElementById("fill").style.width = (p * 100) + "%"; }).then(() => { document.getElementById("loading-overlay").classList.add("hidden"); setTimeout(() => loading - overlay.remove(), 700); }).catch(alert); document.body.appendChild(s);
+    }).catch(e => alert(e));
+  </script>
+</body>
+
+</html>
