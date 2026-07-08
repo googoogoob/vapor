@@ -238,3 +238,14 @@ if (isEmbedded) {
 }
 
 loadGames();
+
+const searchInput = document.getElementById('search-input');
+if (searchInput) {
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase().trim();
+    document.querySelectorAll('.game-item').forEach(item => {
+      const name = item.querySelector('.game-name')?.textContent?.toLowerCase() || '';
+      item.classList.toggle('hidden', query.length > 0 && !name.includes(query));
+    });
+  });
+}
